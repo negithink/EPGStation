@@ -10,10 +10,13 @@ const dualMonoMode = 'main';
 const videoHeight = parseInt(process.env.VIDEORESOLUTION, 10);
 const isDualMono = parseInt(process.env.AUDIOCOMPONENTTYPE, 10) == 2;
 const audioBitrate = videoHeight > 720 ? '192k' : '128k';
-const preset = 'veryfast';
-const codec = 'libx264';
-const crf = 23;
+const videoBaseBitrate = process.env.BASEBITLATE ? process.env.BASEBITLATE : 1000
 
+const preset = 'veryfast';
+const codec = 'h264_videotoolbox';
+
+const videoBitrate = parseInt(videoBaseBitrate * (videoHeight ** 2) / (480 ** 2), 10).toString() + 'k'
+console.log('videoBitrate:', videoBitrate)
 const args = ['-y', '-analyzeduration', analyzedurationSize, '-probesize', probesizeSize];
 
 // dual mono 設定
@@ -22,10 +25,10 @@ if (isDualMono) {
 }
 
 // input 設定
-Array.prototype.push.apply(args,['-i', input]);
+Array.prototype.push.apply(args, ['-i', input]);
 
 // メタ情報を先頭に置く
-Array.prototype.push.apply(args,['-movflags', 'faststart']);
+Array.prototype.push.apply(args, ['-movflags', 'faststart']);
 
 // 字幕データを含めたストリームをすべてマップ
 Array.prototype.push.apply(args, ['-map', '0', '-ignore_unknown', '-max_muxing_queue_size', maxMuxingQueueSize, '-sn']);
@@ -38,11 +41,11 @@ if (videoHeight > 720) {
 Array.prototype.push.apply(args, ['-vf', videoFilter]);
 
 // その他設定
-Array.prototype.push.apply(args,[
+Array.prototype.push.apply(args, [
     '-preset', preset,
     '-aspect', '16:9',
     '-c:v', codec,
-    '-crf', crf,
+    '-b:v', videoBitrate,
     '-f', 'mp4',
     '-c:a', 'aac',
     '-ar', '48000',
@@ -53,7 +56,7 @@ Array.prototype.push.apply(args,[
 
 let str = '';
 for (let i of args) {
-    str += ` ${ i }`
+    str += ` ${i}`
 }
 console.error(str);
 
